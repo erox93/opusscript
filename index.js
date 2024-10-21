@@ -52,6 +52,10 @@ function OpusScript(samplingRate, channels, application, options) {
     this.inPCMPointer = opusscript_native._malloc(this.inPCMLength);
     this.inPCM = opusscript_native.HEAPU16.subarray(this.inPCMPointer, this.inPCMPointer + this.inPCMLength);
 
+    this.inPCMFloatLength = MAX_FRAME_SIZE * this.channels * 4;
+    this.inPCMFloatPointer = opusscript_native._malloc(this.inPCMFloatLength);
+    this.inPCMFloat = opusscript_native.HEAPF32.subarray(this.inPCMFloatPointer, this.inPCMFloatPointer + this.inPCMFloatLength);
+
     this.inOpusPointer = opusscript_native._malloc(MAX_PACKET_SIZE);
     this.inOpus = opusscript_native.HEAPU8.subarray(this.inOpusPointer, this.inOpusPointer + MAX_PACKET_SIZE);
 
@@ -61,6 +65,10 @@ function OpusScript(samplingRate, channels, application, options) {
     this.outPCMLength = MAX_FRAME_SIZE * this.channels * 2;
     this.outPCMPointer = opusscript_native._malloc(this.outPCMLength);
     this.outPCM = opusscript_native.HEAPU16.subarray(this.outPCMPointer, this.outPCMPointer + this.outPCMLength);
+
+    this.outPCMFloatLength = MAX_FRAME_SIZE * this.channels * 4;
+    this.outPCMFloatPointer = opusscript_native._malloc(this.outPCMFloatLength);
+    this.outPCMFloat = opusscript_native.HEAPU16.subarray(this.outPCMFloatPointer, this.outPCMFloatPointer + this.outPCMFloatLength);
 };
 
 OpusScript.prototype.encode = function encode(buffer, frameSize) {
@@ -75,9 +83,9 @@ OpusScript.prototype.encode = function encode(buffer, frameSize) {
 };
 
 OpusScript.prototype.encode_float = function encode_float(buffer, frameSize) {
-    this.inPCM.set(buffer);
+    this.inPCMFloat.set(buffer);
 
-    var len = this.handler._encode_float(this.inPCM.byteOffset, buffer.length, this.outOpusPointer, frameSize);
+    var len = this.handler._encode_float(this.inPCMFloat.byteOffset, buffer.length, this.outOpusPointer, frameSize);
     if(len < 0) {
         throw new Error("Encode error: " + OpusError["" + len]);
     }
@@ -99,12 +107,12 @@ OpusScript.prototype.decode = function decode(buffer) {
 OpusScript.prototype.decode_float = function decode_float(buffer) {
     this.inOpus.set(buffer);
 
-    var len = this.handler._decode_float(this.inOpusPointer, buffer.length, this.outPCM.byteOffset);
+    var len = this.handler._decode_float(this.inOpusPointer, buffer.length, this.outPCMFloat.byteOffset);
     if(len < 0) {
         throw new Error("Decode error: " + OpusError["" + len]);
     }
 
-    return Buffer.from(this.outPCM.subarray(0, len * this.channels * 2));
+    return Buffer.from(this.outPCMFloat.subarray(0, len * this.channels * 2));
 };
 
 OpusScript.prototype.encoderCTL = function encoderCTL(ctl, arg) {
@@ -132,6 +140,8 @@ OpusScript.prototype.delete = function del() {
     opusscript_native._free(this.inOpusPointer);
     opusscript_native._free(this.outOpusPointer);
     opusscript_native._free(this.outPCMPointer);
+    opusscript_native._free(this.outPCMFloatPointer);
+    opusscript_native._free(this.inPCMFloatPointer);
 };
 
 OpusScript.Application = OpusApplication;
