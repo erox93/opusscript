@@ -105,7 +105,9 @@ EMSCRIPTEN_BINDINGS(OpusScriptHandler) {
     class_<OpusScriptHandler>("OpusScriptHandler")
         .constructor<opus_int32, int, int>()
         .function("_encode", &OpusScriptHandler::_encode)
+        .function("_encode_float", &OpusScriptHandler::_encode_float)
         .function("_decode", &OpusScriptHandler::_decode)
+        .function("_decode_float", &OpusScriptHandler::_decode_float)
         .function("_encoder_ctl", &OpusScriptHandler::_encoder_ctl)
         .function("_decoder_ctl", &OpusScriptHandler::_decoder_ctl)
         .class_function("destroy_handler", &OpusScriptHandler::destroy_handler, allow_raw_pointers());
