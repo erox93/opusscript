@@ -16,6 +16,7 @@ class OpusScriptHandler {
         OpusDecoder* decoder;
 
         opus_int16* out_pcm;
+        float* out_pcm_float;
     public:
         OpusScriptHandler(opus_int32 sampling_rate, int channels, int application):
             channels(channels) {
@@ -52,6 +53,13 @@ class OpusScriptHandler {
             return opus_encode(encoder, input, frame_size, output, MAX_PACKET_SIZE);
         }
 
+        int _encode_float(int input_buffer, int bytes, int output_buffer, int frame_size) {
+            float* input = reinterpret_cast<float*>(input_buffer);
+            unsigned char* output = reinterpret_cast<unsigned char*>(output_buffer);
+
+            return opus_encode_float(encoder, input, frame_size, output, MAX_PACKET_SIZE);
+        }
+
         int _decode(int input_buffer, int bytes, int output_buffer) {
             unsigned char* input = reinterpret_cast<unsigned char*>(input_buffer);
             short* pcm = reinterpret_cast<short*>(output_buffer);
@@ -61,6 +69,20 @@ class OpusScriptHandler {
             for(int i = 0; i < len * channels; i++) {
                 pcm[2 * i] = out_pcm[i] & 0xFF;
                 pcm[2 * i + 1] = (out_pcm[i] >> 8) & 0xFF;
+            }
+
+            return len;
+        }
+
+        int _decode_float(int input_buffer, int bytes, int output_buffer) {
+            unsigned char* input = reinterpret_cast<unsigned char*>(input_buffer);
+            float* pcm = reinterpret_cast<float*>(output_buffer);
+
+            int len = opus_decode_float(decoder, input, bytes, out_pcm_float, MAX_FRAME_SIZE, 0);
+
+            for(int i = 0; i < len * channels; i++) {
+                pcm[2 * i] = out_pcm_float[i];
+                pcm[2 * i + 1] = out_pcm_float[i];
             }
 
             return len;

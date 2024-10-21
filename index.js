@@ -74,10 +74,32 @@ OpusScript.prototype.encode = function encode(buffer, frameSize) {
     return Buffer.from(this.outOpus.subarray(0, len));
 };
 
+OpusScript.prototype.encode_float = function encode_float(buffer, frameSize) {
+    this.inPCM.set(buffer);
+
+    var len = this.handler._encode_float(this.inPCM.byteOffset, buffer.length, this.outOpusPointer, frameSize);
+    if(len < 0) {
+        throw new Error("Encode error: " + OpusError["" + len]);
+    }
+
+    return Buffer.from(this.outOpus.subarray(0, len));
+};
+
 OpusScript.prototype.decode = function decode(buffer) {
     this.inOpus.set(buffer);
 
     var len = this.handler._decode(this.inOpusPointer, buffer.length, this.outPCM.byteOffset);
+    if(len < 0) {
+        throw new Error("Decode error: " + OpusError["" + len]);
+    }
+
+    return Buffer.from(this.outPCM.subarray(0, len * this.channels * 2));
+};
+
+OpusScript.prototype.decode_float = function decode_float(buffer) {
+    this.inOpus.set(buffer);
+
+    var len = this.handler._decode_float(this.inOpusPointer, buffer.length, this.outPCM.byteOffset);
     if(len < 0) {
         throw new Error("Decode error: " + OpusError["" + len]);
     }

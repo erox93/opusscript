@@ -79,9 +79,17 @@ declare module 'opusscript' {
          */
         encode(buffer: Buffer, frameSize: number): Buffer;
         /**
+         * Encode a buffer PCM Float into Opus
+         */
+        encode_float(buffer: Buffer, frameSize: number): Buffer;
+        /**
          * Decode an opus buffer
          */
         decode(buffer: Buffer): Buffer;
+        /**
+         * Decode an opus buffer to PCM Float
+         */
+        decode_float(buffer: Buffer): Buffer;
         /**
          * Set the encoder bitrate
          */
